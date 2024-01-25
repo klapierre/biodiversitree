@@ -1,6 +1,6 @@
 #######################################################################################
-##  calc_tree_growth.R: combines tree size data from spring 2022 and 2023, 
-##                  then calculates height & RCD growth over summer 2022
+##  calc_tree_growth.R: combines tree size data from springs 2022 and 2023, 
+##                  then calculates growth in multiple metrics over summer 2022
 ##
 ##  Author: Kelsey McGurrin
 ##
@@ -100,11 +100,24 @@ data23<-select(data23,
 growth<-full_join(data22,data23,by="indiv",suffix = c(".22",".23"))
 growth<-growth %>%
   group_by(indiv) %>%
-  transmute(ht_growth=ht.23-ht.22,RCD_growth=RCDBasalArea.23-RCDBasalArea.22)%>%
+  transmute(ht_growth=ht.23-ht.22,
+            RCD_growth=RCDBasalArea.23-RCDBasalArea.22,
+            rad_growth=radAvg.23-radAvg.22,
+            DBH_growth=DBHBasalArea.23-DBHBasalArea.22,
+            canopy_growth=ConeCanVol.23-ConeCanVol.22,
+            trunk_growth=RCDtrunkVol.23-RCDtrunkVol.22
+            )%>%
   drop_na()
 
+#### QC plots ####
 ggplot(data=growth,aes(x=ht_growth))+geom_histogram()
 ggplot(data=growth,aes(x=RCD_growth))+geom_histogram()
+ggplot(data=growth,aes(x=rad_growth))+geom_histogram()
+ggplot(data=growth,aes(x=DBH_growth))+geom_histogram()
+ggplot(data=growth,aes(x=canopy_growth))+geom_histogram()
+ggplot(data=growth,aes(x=trunk_growth))+geom_histogram()
 
-## output
+
+
+#### output ####
 write_csv(growth,file = "input_data/tree_growth_22.csv")
