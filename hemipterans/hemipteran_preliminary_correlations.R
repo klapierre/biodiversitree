@@ -158,7 +158,7 @@ ggplot(data=subset(data2022, !is.na(trophic_guild) & trophic_guild!='Cicadellida
 damage <- read_xlsx('2022\\input_data\\2022_tree_damage.xlsx') %>% 
   mutate(damage=((leaf_1+leaf_2+leaf_3+leaf_4+leaf_5+leaf_6+leaf_7+leaf_8+leaf_9+leaf_10+leaf_11+leaf_12)/12)) %>% 
   select(-(leaf_1:leaf_12), -date) %>% 
-  group_by(plot, tree_spp, tree_indiv, metric) %>% 
+  group_by(plot, tree_spp, tree_indiv, metric, pct_deer) %>% 
   summarise(damage_mean=mean(damage)) %>%
   ungroup() %>% 
   pivot_wider(names_from=metric, values_from=damage_mean, values_fill=0)
@@ -187,7 +187,7 @@ allData <- data2022 %>%
   ungroup() %>% 
   left_join(functionalAbundance) %>% 
   left_join(lep) %>% 
-  left_join(damage) %>% 
+  left_join(damage) %>%  #why is individual 11637 in here twice?
   left_join(treeGrowth) %>% 
   select(-'NA', -Cicadellidae)
 
@@ -195,4 +195,21 @@ chartData <- allData %>%
   select(-tree_spp, -plot, -tree_indiv, -ht_growth, -RCD_growth, -rad_growth, -trunk_growth)
 
 chart.Correlation(chartData, histogram=TRUE, pch=19)
+
+
+#damage
+trt <- data2022 %>% 
+  select(tree_spp, tree_div, plot, tree_indiv) %>% 
+  unique()
+
+damage2 <- damage %>% 
+  pivot_longer(pct_deer:pct_path, names_to='metric', values_to='damage') %>% 
+  left_join(trt) %>% 
+  filter(!is.na(damage), !is.na(tree_div))
+
+ggplot(data=damage2, aes(x=as.factor(tree_div), y=damage, color=tree_spp)) +
+  geom_boxplot() +
+  facet_wrap(~metric, scales='free') +
+  theme(strip.text = element_text(size = 20))
   
+        
