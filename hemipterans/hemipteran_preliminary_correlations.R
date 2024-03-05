@@ -2,7 +2,7 @@
 ##  hemipteran_preliminary_correlations.R: Preliminary data investigation for 
 ##  biodiversitree multi-trophic project on hemipteran abundance data.
 ##
-##  Author: Kimberly Komatsu
+##  Authors: Kimberly Komatsu & Kelsey McGurrin
 ##  Date created: February 21, 2024
 ################################################################################
 
@@ -19,6 +19,10 @@ theme_update(axis.title.x=element_text(size=30, vjust=-0.35, margin=margin(t=15)
              panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
              legend.title=element_blank(), legend.text=element_text(size=30))
 
+customBDTcolors<-scale_color_manual(values=c("ACRU"="#798df4","CAAL"="#ff7072","CACA"="#00c5ff","COFL"="#fde9aa",
+                                             "FAGR"="#b80073","FRPE"="#1801fd","LIST"="#ffff05","LITU"="#14d600",
+                                             "NYSY"="salmon","PLOC"="#0076f4","QUAL"="#791972","QUPA"="#ff0000",
+                                             "QURU"="#9c001d","QUVE"="#af804e","ULAM"="#9478ff"))
 
 ###bar graph summary statistics function
 #barGraphStats(data=, variable="", byFactorNames=c(""))
@@ -45,13 +49,11 @@ barGraphStats <- function(data, variable, byFactorNames) {
 
 ##### read in data #####
 
-data2022 <- read_xlsx('2022\\input_data\\BDT_hemip_data_2022.xlsx') %>% 
-  mutate(trophic_guild=ifelse(family=='Acanaloniidae', 'phloem',
-                                     ifelse(family=='Coreidae', 'mesophyll',
-                                                   ifelse(family=='Miridae', 'mesophyll', 
-                                                          ifelse(family=='Aleyrodidae', 'phloem', trophic_guild)))))
-
-
+data2022 <- read_xlsx('2022\\input_data\\BDT_hemip_data_2022.xlsx')  
+ 
+# may want to drop 3 individuals where no confirmed ID/"unknown" trophic guild for specific analyses- 
+# leaving rows in because they should count toward abundance and family diversity
+  
 
 ##### figures #####
 
@@ -147,12 +149,26 @@ ggplot(functionalDiversityAbundance, aes(x="", y=proportion, fill=trophic_guild)
 
 
 #abundances
-ggplot(data=subset(data2022, !is.na(trophic_guild) & trophic_guild!='Cicadellidae'), aes(x=as.factor(tree_div), y=abundance, color=trophic_guild)) +
+ggplot(data=subset(data2022, !is.na(trophic_guild)), aes(x=as.factor(tree_div), y=abundance, color=trophic_guild)) +
   geom_boxplot() +
   scale_y_log10() +
   facet_wrap(~tree_spp, scales='free')
   
-  
+####  format like caterpillar figure  ####  
+ggplot(data=data2022,aes(x=tree_div, y=abundance, color=tree_spp, group=tree_spp))+
+  stat_smooth(method="glm",se=FALSE,linetype=5,linewidth=1)+ 
+  stat_smooth(aes(group=1), method="glm",se=T, colour="black", linewidth=2)+
+  stat_summary(aes(group=1),colour="black",size=0.85,fun.data = "mean_se")+
+  labs(x="Plot Diversity",y="Hemipteran Abundance",title = "2022")+
+  customBDTcolors+
+  theme_classic()+
+  theme(strip.text=element_text(face="bold",size=rel(1.5)))+
+  scale_x_continuous(limits=c(0, 13),
+                     breaks=c(1,4,12),
+                     expand = c(0,0))
+#ggsave("2022/hemipteran results/hemip abundance 2022.png",width=4, height=4, units=c("in"))
+
+
 ##### merge on other datasets #####
 
 damage <- read_xlsx('2022\\input_data\\2022_tree_damage.xlsx') %>% 
