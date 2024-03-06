@@ -154,7 +154,7 @@ ggplot(data=subset(data2022, !is.na(trophic_guild)), aes(x=as.factor(tree_div), 
   scale_y_log10() +
   facet_wrap(~tree_spp, scales='free')
   
-####  format like caterpillar figure  ####  
+####  hemip abund standard BDT format  ####  
 ggplot(data=data2022,aes(x=tree_div, y=abundance, color=tree_spp, group=tree_spp))+
   stat_smooth(method="glm",se=FALSE,linetype=5,linewidth=1)+ 
   stat_smooth(aes(group=1), method="glm",se=T, colour="black", linewidth=2)+
@@ -198,14 +198,15 @@ functionalAbundance <- data2022 %>%
 allData <- data2022 %>% 
   filter(abundance>0) %>% 
   group_by(tree_spp, tree_div, plot, tree_indiv) %>% 
-  summarise(hemip_richness=length(unique(family)),
+  summarise(hemip_fam_rich=length(unique(family)),
+            hemip_guild_rich=length(unique(trophic_guild)),
             hemip_abund=sum(abundance)) %>% 
   ungroup() %>% 
   left_join(functionalAbundance) %>% 
   left_join(lep) %>% 
-  left_join(damage) %>%  #why is individual 11637 in here twice?
+  left_join(damage) %>%  
   left_join(treeGrowth) %>% 
-  select(-'NA', -Cicadellidae)
+  select(-'NA', -unknown)
 
 chartData <- allData %>% 
   select(-tree_spp, -plot, -tree_indiv, -ht_growth, -RCD_growth, -rad_growth, -trunk_growth)
@@ -228,4 +229,80 @@ ggplot(data=damage2, aes(x=as.factor(tree_div), y=damage, color=tree_spp)) +
   facet_wrap(~metric, scales='free') +
   theme(strip.text = element_text(size = 20))
   
-        
+####  damage standard BDT format  ####  
+
+# add tree_div column
+damage <- damage %>% 
+  left_join(trt) 
+
+## deer
+ggplot(data=damage,aes(x=tree_div, y=pct_deer, color=tree_spp, group=tree_spp))+
+  stat_smooth(method="glm",se=FALSE,linetype=5,linewidth=1)+ 
+  stat_smooth(aes(group=1), method="glm",se=T, colour="black", linewidth=2)+
+  stat_summary(aes(group=1),colour="black",size=0.85,fun.data = "mean_se")+
+  labs(x="Plot Diversity",y="% of Tree Damaged by Deer",title = "2022")+
+  customBDTcolors+
+  theme_classic()+
+  theme(strip.text=element_text(face="bold",size=rel(1.5)))+
+  scale_x_continuous(limits=c(0, 13),
+                     breaks=c(1,4,12),
+                     expand = c(0,0))
+#ggsave("2022/damage results/deer damage 2022.png",width=4, height=4, units=c("in"))
+
+## galls
+ggplot(data=damage,aes(x=tree_div, y=num_gall, color=tree_spp, group=tree_spp))+
+  stat_smooth(method="glm",se=FALSE,linetype=5,linewidth=1)+ 
+  stat_smooth(aes(group=1), method="glm",se=T, colour="black", linewidth=2)+
+  stat_summary(aes(group=1),colour="black",size=0.85,fun.data = "mean_se")+
+  labs(x="Plot Diversity",y="Average # Galls Per Leaf",title = "2022")+
+  customBDTcolors+
+  theme_classic()+
+  theme(strip.text=element_text(face="bold",size=rel(1.5)))+
+  scale_x_continuous(limits=c(0, 13),
+                     breaks=c(1,4,12),
+                     expand = c(0,0))
+#ggsave("2022/damage results/avg num galls 2022.png",width=4, height=4, units=c("in"))
+
+## insect
+ggplot(data=damage,aes(x=tree_div, y=pct_insect, color=tree_spp, group=tree_spp))+
+  stat_smooth(method="glm",se=FALSE,linetype=5,linewidth=1)+ 
+  stat_smooth(aes(group=1), method="glm",se=T, colour="black", linewidth=2)+
+  stat_summary(aes(group=1),colour="black",size=0.85,fun.data = "mean_se")+
+  labs(x="Plot Diversity",y="Average % Insect Damage Per Leaf",title = "2022")+
+  customBDTcolors+
+  theme_classic()+
+  theme(strip.text=element_text(face="bold",size=rel(1.5)))+
+  scale_x_continuous(limits=c(0, 13),
+                     breaks=c(1,4,12),
+                     expand = c(0,0))
+#ggsave("2022/damage results/insect damage 2022.png",width=4, height=4, units=c("in"))
+
+#### hemip richness standard BDT format ####
+
+## by family
+ggplot(data=allData,aes(x=tree_div, y=hemip_fam_rich, color=tree_spp, group=tree_spp))+
+  stat_smooth(method="glm",se=FALSE,linetype=5,linewidth=1)+ 
+  stat_smooth(aes(group=1), method="glm",se=T, colour="black", linewidth=2)+
+  stat_summary(aes(group=1),colour="black",size=0.85,fun.data = "mean_se")+
+  labs(x="Plot Diversity",y="# Hemipteran Families",title = "2022")+
+  customBDTcolors+
+  theme_classic()+
+  theme(strip.text=element_text(face="bold",size=rel(1.5)))+
+  scale_x_continuous(limits=c(0, 13),
+                     breaks=c(1,4,12),
+                     expand = c(0,0))
+#ggsave("2022/hemipteran results/hemip fam rich 2022.png",width=4, height=4, units=c("in"))
+
+## by feeding guild
+ggplot(data=allData,aes(x=tree_div, y=hemip_guild_rich, color=tree_spp, group=tree_spp))+
+  stat_smooth(method="glm",se=FALSE,linetype=5,linewidth=1)+ 
+  stat_smooth(aes(group=1), method="glm",se=T, colour="black", linewidth=2)+
+  stat_summary(aes(group=1),colour="black",size=0.85,fun.data = "mean_se")+
+  labs(x="Plot Diversity",y="# Hemipteran Guilds",title = "2022")+
+  customBDTcolors+
+  theme_classic()+
+  theme(strip.text=element_text(face="bold",size=rel(1.5)))+
+  scale_x_continuous(limits=c(0, 13),
+                     breaks=c(1,4,12),
+                     expand = c(0,0))
+#ggsave("2022/hemipteran results/hemip guild rich 2022.png",width=4, height=4, units=c("in"))
