@@ -50,8 +50,10 @@ barGraphStats <- function(data, variable, byFactorNames) {
 ##### read in data #####
 
 data2022 <- read_xlsx('2022\\input_data\\BDT_hemip_data_2022.xlsx')  
+
+data2024 <- read_csv("2024\\input_data\\2024_clean_hemipterans.csv")
  
-# may want to drop 3 individuals where no confirmed ID/"unknown" trophic guild for specific analyses- 
+# may want to drop a few individuals where no confirmed ID/"unknown" trophic guild for specific analyses- 
 # leaving rows in because they should count toward abundance and family diversity
   
 
@@ -167,6 +169,19 @@ ggplot(data=data2022,aes(x=tree_div, y=abundance, color=tree_spp, group=tree_spp
                      breaks=c(1,4,12),
                      expand = c(0,0))
 #ggsave("2022/hemipteran results/hemip abundance 2022.png",width=4, height=4, units=c("in"))
+
+ggplot(data=data2024,aes(x=tree_div, y=tot_abundance, color=tree_spp, group=tree_spp))+
+  stat_smooth(method="glm",se=FALSE,linetype=5,linewidth=1)+ 
+  stat_smooth(aes(group=1), method="glm",se=T, colour="black", linewidth=2)+
+  stat_summary(aes(group=1),colour="black",size=0.85,fun.data = "mean_se")+
+  labs(x="Plot Diversity",y="Hemipteran Abundance",title = "2024")+
+  customBDTcolors+
+  theme_classic()+
+  theme(strip.text=element_text(face="bold",size=rel(1.5)))+
+  scale_x_continuous(limits=c(0, 13),
+                     breaks=c(1,4,12),
+                     expand = c(0,0))
+#ggsave("2024/hemipteran results/hemip abundance 2024.png",width=4, height=4, units=c("in"))
 
 
 ##### merge on other datasets #####
@@ -293,6 +308,7 @@ ggplot(data=allData,aes(x=tree_div, y=hemip_fam_rich, color=tree_spp, group=tree
                      expand = c(0,0))
 #ggsave("2022/hemipteran results/hemip fam rich 2022.png",width=4, height=4, units=c("in"))
 
+
 ## by feeding guild
 ggplot(data=allData,aes(x=tree_div, y=hemip_guild_rich, color=tree_spp, group=tree_spp))+
   stat_smooth(method="glm",se=FALSE,linetype=5,linewidth=1)+ 
@@ -306,3 +322,40 @@ ggplot(data=allData,aes(x=tree_div, y=hemip_guild_rich, color=tree_spp, group=tr
                      breaks=c(1,4,12),
                      expand = c(0,0))
 #ggsave("2022/hemipteran results/hemip guild rich 2022.png",width=4, height=4, units=c("in"))
+
+### 2024
+# calculate richness 
+rich2024 <- data2024 %>% 
+  filter(tot_abundance>0) %>% 
+  group_by(tree_spp, tree_div, plot, tree_indiv) %>% 
+  summarise(hemip_fam_rich=length(unique(family)),
+            hemip_guild_rich=length(unique(trophic_guild)),
+            hemip_abund=sum(tot_abundance))
+
+## by family 
+ggplot(data=rich2024,aes(x=tree_div, y=hemip_fam_rich, color=tree_spp, group=tree_spp))+
+  stat_smooth(method="glm",se=FALSE,linetype=5,linewidth=1)+ 
+  stat_smooth(aes(group=1), method="glm",se=T, colour="black", linewidth=2)+
+  stat_summary(aes(group=1),colour="black",size=0.85,fun.data = "mean_se")+
+  labs(x="Plot Diversity",y="# Hemipteran Families",title = "2024")+
+  customBDTcolors+
+  theme_classic()+
+  theme(strip.text=element_text(face="bold",size=rel(1.5)))+
+  scale_x_continuous(limits=c(0, 13),
+                     breaks=c(1,4,12),
+                     expand = c(0,0))
+#ggsave("2024/hemipteran results/hemip fam rich 2024.png",width=4, height=4, units=c("in"))
+
+## by feeding guild
+ggplot(data=rich2024,aes(x=tree_div, y=hemip_guild_rich, color=tree_spp, group=tree_spp))+
+  stat_smooth(method="glm",se=FALSE,linetype=5,linewidth=1)+ 
+  stat_smooth(aes(group=1), method="glm",se=T, colour="black", linewidth=2)+
+  stat_summary(aes(group=1),colour="black",size=0.85,fun.data = "mean_se")+
+  labs(x="Plot Diversity",y="# Hemipteran Guilds",title = "2024")+
+  customBDTcolors+
+  theme_classic()+
+  theme(strip.text=element_text(face="bold",size=rel(1.5)))+
+  scale_x_continuous(limits=c(0, 13),
+                     breaks=c(1,4,12),
+                     expand = c(0,0))
+#ggsave("2024/hemipteran results/hemip guild rich 2024.png",width=4, height=4, units=c("in"))
