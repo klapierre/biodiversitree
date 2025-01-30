@@ -49,7 +49,7 @@ barGraphStats <- function(data, variable, byFactorNames) {
 
 ##### read in data #####
 
-data2022 <- read_xlsx('2022\\input_data\\BDT_hemip_data_2022.xlsx')  
+data2022 <- read_csv('2022\\input_data\\2022_clean_hemipterans.csv')  
 
 data2024 <- read_csv("2024\\input_data\\2024_clean_hemipterans.csv")
  
@@ -61,9 +61,9 @@ data2024 <- read_csv("2024\\input_data\\2024_clean_hemipterans.csv")
 
 #hemipteran family patterns across tree spp and div treatments
 familyTreeAbundance <- data2022 %>% 
-  filter(abundance>0, !is.na(family)) %>% 
+  filter(tot_abundance>0, !is.na(family)) %>% 
   group_by(tree_spp, family) %>% 
-  summarise(sum_abundance=sum(abundance)) %>% 
+  summarise(sum_abundance=sum(tot_abundance)) %>% 
   mutate(proportion = round((sum_abundance/sum(sum_abundance)), digits=3)) %>% 
   ungroup() %>% 
   arrange(proportion) %>%
@@ -83,9 +83,9 @@ ggplot(familyTreeAbundance, aes(x="", y=proportion, fill=family)) +
         strip.text = element_text(size = 20))
 
 familyDiversityAbundance <- data2022 %>% 
-  filter(abundance>0, !is.na(family)) %>% 
+  filter(tot_abundance>0, !is.na(family)) %>% 
   group_by(tree_div, family) %>% 
-  summarise(sum_abundance=sum(abundance)) %>% 
+  summarise(sum_abundance=sum(tot_abundance)) %>% 
   mutate(proportion = round((sum_abundance/sum(sum_abundance)), digits=3)) %>% 
   ungroup() %>% 
   arrange(proportion) %>%
@@ -106,9 +106,9 @@ ggplot(familyDiversityAbundance, aes(x="", y=proportion, fill=family)) +
 
 #hemipteran functional group patterns across tree spp and div treatments
 functionalTreeAbundance <- data2022 %>% 
-  filter(abundance>0, !is.na(trophic_guild)) %>% 
+  filter(tot_abundance>0, !is.na(trophic_guild)) %>% 
   group_by(tree_spp, trophic_guild) %>% 
-  summarise(sum_abundance=sum(abundance)) %>% 
+  summarise(sum_abundance=sum(tot_abundance)) %>% 
   mutate(proportion = round((sum_abundance/sum(sum_abundance)), digits=3)) %>% 
   ungroup() %>% 
   arrange(proportion) %>%
@@ -128,9 +128,9 @@ ggplot(functionalTreeAbundance, aes(x="", y=proportion, fill=trophic_guild)) +
         strip.text = element_text(size = 20))
 
 functionalDiversityAbundance <- data2022 %>% 
-  filter(abundance>0, !is.na(trophic_guild)) %>% 
+  filter(tot_abundance>0, !is.na(trophic_guild)) %>% 
   group_by(tree_div, trophic_guild) %>% 
-  summarise(sum_abundance=sum(abundance)) %>% 
+  summarise(sum_abundance=sum(tot_abundance)) %>% 
   mutate(proportion = round((sum_abundance/sum(sum_abundance)), digits=3)) %>% 
   ungroup() %>% 
   arrange(proportion) %>%
@@ -151,13 +151,13 @@ ggplot(functionalDiversityAbundance, aes(x="", y=proportion, fill=trophic_guild)
 
 
 #abundances
-ggplot(data=subset(data2022, !is.na(trophic_guild)), aes(x=as.factor(tree_div), y=abundance, color=trophic_guild)) +
+ggplot(data=subset(data2022, !is.na(trophic_guild)), aes(x=as.factor(tree_div), y=tot_abundance, color=trophic_guild)) +
   geom_boxplot() +
   scale_y_log10() +
   facet_wrap(~tree_spp, scales='free')
   
 ####  hemip abund standard BDT format  ####  
-ggplot(data=data2022,aes(x=tree_div, y=abundance, color=tree_spp, group=tree_spp))+
+ggplot(data=data2022,aes(x=tree_div, y=tot_abundance, color=tree_spp, group=tree_spp))+
   stat_smooth(method="glm",se=FALSE,linetype=5,linewidth=1)+ 
   stat_smooth(aes(group=1), method="glm",se=T, colour="black", linewidth=2)+
   stat_summary(aes(group=1),colour="black",size=0.85,fun.data = "mean_se")+
@@ -204,18 +204,18 @@ treeGrowth <- read.csv('2022\\input_data\\tree_growth_22.csv') %>%
   rename(tree_indiv=indiv)
 
 functionalAbundance <- data2022 %>% 
-  filter(abundance>0) %>% 
+  filter(tot_abundance>0) %>% 
   group_by(tree_spp, tree_div, plot, tree_indiv, trophic_guild) %>% 
-  summarise(abund=sum(abundance)) %>% 
+  summarise(abund=sum(tot_abundance)) %>% 
   ungroup() %>% 
   pivot_wider(names_from=trophic_guild, values_from=abund, values_fill=0)
   
 allData <- data2022 %>% 
-  filter(abundance>0) %>% 
+  filter(tot_abundance>0) %>% 
   group_by(tree_spp, tree_div, plot, tree_indiv) %>% 
   summarise(hemip_fam_rich=length(unique(family)),
             hemip_guild_rich=length(unique(trophic_guild)),
-            hemip_abund=sum(abundance)) %>% 
+            hemip_abund=sum(tot_abundance)) %>% 
   ungroup() %>% 
   left_join(functionalAbundance) %>% 
   left_join(lep) %>% 
