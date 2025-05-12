@@ -18,7 +18,7 @@ data22<-read_csv("input_data/2022_trophic_tree_final.csv",col_types = cols(Notes
                                                                            measDate = col_skip(),
                                                                            crn_ht=col_character()), 
                  na = c("NA","n/a"))
-data23<-read_csv("input_data/2023_trophic_tree_final.csv",col_types = cols(Notes2023 = col_skip(), 
+data23<-read_csv("../2023/input_data/2023_trophic_tree_final.csv",col_types = cols(Notes2023 = col_skip(), 
                                                                            ht = col_character(), 
                                                                            measDate = col_skip(),
                                                                            crn_ht=col_character()), 
